@@ -23,30 +23,34 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(buttonPin), onClick, CHANGE);
 }
 
+void process()
+{
+  light();
+  buzz();
+}
+
 void loop()
 {
   if (Serial.available() > 0)
   {
     serialIn = Serial.read();
+    process();
   }
-
-  onLights();
-  onBuzz();
 }
 
-void onLights()
+void light()
 {
   lightsOn = (serialIn & 0xff) << 1;
 
   PORTB = lightsOn;
 }
 
-void onBuzz()
+void buzz()
 {
-  if (serialIn < 2)
-    return;
   noTone(buzzPin);
-  tone(buzzPin, serialIn << 3, 100);
+  if (serialIn < 5)
+    return;
+  tone(buzzPin, serialIn << 3);
 }
 
 void onClick()
@@ -59,4 +63,6 @@ void onClick()
   {
     serialIn = serialIn << 1;
   }
+
+  process();
 }

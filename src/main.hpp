@@ -1,3 +1,3 @@
-void onLights();
-void onBuzz();
+void light();
+void buzz();
 void onClick();
