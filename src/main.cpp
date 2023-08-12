@@ -27,6 +27,18 @@ void onLights()
   PORTB = lightsOn;
 }
 
+void onBuzz()
+{
+  size_t i;
+  for (i = 0; i < sizeof(keys); i++)
+  {
+    if (serialIn == keys[i])
+    {
+      tone(buzzPin, notes[i]);
+    }
+  }
+}
+
 void loop()
 {
   if (Serial.available() > 0)
@@ -35,4 +47,5 @@ void loop()
   }
 
   onLights();
+  onBuzz();
 }
