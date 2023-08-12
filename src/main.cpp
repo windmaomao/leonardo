@@ -8,7 +8,7 @@ uint8_t lightsOn;
 // Buzz pin
 int buzzPin = 4;
 // Interrupt pin
-int buttonPin = 3;
+int buttonPin = 2;
 
 void setup()
 {
