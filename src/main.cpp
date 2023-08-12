@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "main.hpp"
 
 // Incoming serial data
 int serialIn;
@@ -6,6 +7,8 @@ int serialIn;
 uint8_t lightsOn;
 // Buzz pin
 int buzzPin = 4;
+// Interrupt pin
+int buttonPin = 3;
 
 void setup()
 {
@@ -13,27 +16,11 @@ void setup()
   DDRB = 0xff;
   // Serial port
   Serial.begin(9600);
-  // Buzz port
+  // Buzz pin
   pinMode(buzzPin, OUTPUT);
-}
-
-void onLights()
-{
-  lightsOn = (serialIn & 0xff) << 1;
-
-  PORTB = lightsOn;
-}
-
-void onBuzz()
-{
-  if (serialIn > 35)
-  {
-    tone(buzzPin, serialIn << 2);
-  }
-  else
-  {
-    noTone(buzzPin);
-  }
+  // Button pin
+  pinMode(buttonPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(buttonPin), onClick, CHANGE);
 }
 
 void loop()
@@ -45,4 +32,31 @@ void loop()
 
   onLights();
   onBuzz();
+}
+
+void onLights()
+{
+  lightsOn = (serialIn & 0xff) << 1;
+
+  PORTB = lightsOn;
+}
+
+void onBuzz()
+{
+  if (serialIn < 2)
+    return;
+  noTone(buzzPin);
+  tone(buzzPin, serialIn << 3, 100);
+}
+
+void onClick()
+{
+  if (digitalRead(buttonPin) == LOW)
+  {
+    serialIn = serialIn >> 1;
+  }
+  else
+  {
+    serialIn = serialIn << 1;
+  }
 }
