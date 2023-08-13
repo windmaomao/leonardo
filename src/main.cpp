@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "main.hpp"
+#include "notes.hpp"
 
 // Incoming serial data
 int serialIn;
@@ -50,7 +51,16 @@ void buzz()
   noTone(buzzPin);
   if (serialIn < 5)
     return;
-  tone(buzzPin, serialIn << 3);
+
+  int note = getKeyNote(serialIn);
+  if (note > 0)
+  {
+    tone(buzzPin, note, 400);
+  }
+  else
+  {
+    tone(buzzPin, serialIn << 3, 200);
+  }
 }
 
 void onClick()
