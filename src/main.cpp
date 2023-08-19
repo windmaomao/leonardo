@@ -10,6 +10,8 @@ uint8_t lightsOn;
 int buzzPin = 4;
 // Interrupt pin
 int buttonPin = 2;
+// Previous time
+unsigned long prevTime = 0;
 
 void setup()
 {
@@ -35,6 +37,14 @@ void loop()
   if (Serial.available() > 0)
   {
     serialIn = Serial.read();
+    process();
+  }
+
+  unsigned long currTime = millis();
+  if (currTime - prevTime >= 100)
+  {
+    prevTime = currTime;
+    serialIn = serialIn >> 1;
     process();
   }
 }
