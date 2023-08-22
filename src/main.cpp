@@ -3,9 +3,9 @@
 #include "main.hpp"
 #include "notes.hpp"
 
-// Incoming serial data
+// Serial byte
 int serialIn;
-// Current lights
+// Light array
 uint8_t lightsOn;
 // Buzz pin
 int buzzPin = 4;
@@ -13,6 +13,8 @@ int buzzPin = 4;
 int buttonPin = 7;
 // Previous time
 unsigned long prevTime = 0;
+// Keycode
+char keycode = 'A';
 
 void setup()
 {
@@ -40,6 +42,7 @@ void loop()
   if (Serial.available() > 0)
   {
     serialIn = Serial.read();
+    keycode = serialIn;
     process();
   }
 
@@ -78,16 +81,7 @@ void buzz()
 
 void click()
 {
-  if (digitalRead(buttonPin) == LOW)
-  {
-    serialIn = serialIn >> 1;
-  }
-  else
-  {
-    serialIn = serialIn << 1;
-  }
-
-  Serial.println('A');
-  Keyboard.write('A');
+  serialIn = keycode;
+  Keyboard.write(keycode);
   process();
 }
