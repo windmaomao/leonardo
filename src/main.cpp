@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Keyboard.h>
 #include "main.hpp"
 #include "notes.hpp"
 
@@ -9,7 +10,7 @@ uint8_t lightsOn;
 // Buzz pin
 int buzzPin = 4;
 // Interrupt pin
-int buttonPin = 2;
+int buttonPin = 7;
 // Previous time
 unsigned long prevTime = 0;
 
@@ -23,7 +24,9 @@ void setup()
   pinMode(buzzPin, OUTPUT);
   // Button pin
   pinMode(buttonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(buttonPin), onClick, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(buttonPin), click, CHANGE);
+  // Keyboard usb
+  Keyboard.begin();
 }
 
 void process()
@@ -73,7 +76,7 @@ void buzz()
   }
 }
 
-void onClick()
+void click()
 {
   if (digitalRead(buttonPin) == LOW)
   {
@@ -84,5 +87,7 @@ void onClick()
     serialIn = serialIn << 1;
   }
 
+  Serial.println('A');
+  Keyboard.write('A');
   process();
 }
