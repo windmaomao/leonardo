@@ -13,8 +13,8 @@ int buzzPin = 4;
 // Switch pin
 Button keySwitch(7);
 // Rotary pins
-int leftPin = 3;
-int rightPin = 2;
+Button leftSpin(3);
+Button rightSpin(2);
 int lastEncoder;
 // Previous time
 unsigned long prevTime = 0;
@@ -27,13 +27,8 @@ void setup()
   Serial.begin(9600);
   keySwitch.begin();
   pinMode(buzzPin, OUTPUT);
-  // Button pin
-  // pinMode(buttonPin, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(buttonPin), click, CHANGE);
-  // Rotary pins
-  pinMode(leftPin, INPUT_PULLUP);
-  pinMode(rightPin, INPUT_PULLUP);
-  // Keyboard usb
+  leftSpin.begin();
+  rightSpin.begin();
   Keyboard.begin();
 }
 
@@ -45,18 +40,34 @@ void process()
 
 void loop()
 {
-  keySwitch.read();
-  if (keySwitch.wasReleased()) {
-    serialIn = keycode;
-    Keyboard.write(keycode);
-    process();
-  }
-
+  // handle serial input
   if (Serial.available() > 0)
   {
     serialIn = Serial.read();
     keycode = serialIn;
     process();
+  }
+
+  // handle key press
+  keySwitch.read();
+  if (keySwitch.wasReleased()) {
+    Serial.println("key");
+    Serial.println(keycode);
+    serialIn = keycode;
+    Keyboard.write(keycode);
+    process();
+  }
+
+  // handle rotary spin
+  bool l = leftSpin.read();
+  bool r = rightSpin.read();
+  if (leftSpin.wasReleased() || leftSpin.wasPressed()) {
+    if (l == r) {
+      keycode--;
+    } else {
+      keycode++;
+    }
+    Serial.println(keycode);
   }
 
   unsigned long currTime = millis();
