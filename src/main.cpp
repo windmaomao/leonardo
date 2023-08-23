@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Keyboard.h>
+#include <JC_Button.h>
 #include "main.hpp"
 #include "notes.hpp"
 
@@ -9,8 +10,8 @@ int serialIn;
 uint8_t lightsOn;
 // Buzz pin
 int buzzPin = 4;
-// Interrupt pin
-int buttonPin = 7;
+// Switch pin
+Button keySwitch(7);
 // Rotary pins
 int leftPin = 3;
 int rightPin = 2;
@@ -22,15 +23,13 @@ char keycode = 'A';
 
 void setup()
 {
-  // Ports for lights
   DDRB = 0xff;
-  // Serial port
   Serial.begin(9600);
-  // Buzz pin
+  keySwitch.begin();
   pinMode(buzzPin, OUTPUT);
   // Button pin
-  pinMode(buttonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(buttonPin), click, CHANGE);
+  // pinMode(buttonPin, INPUT_PULLUP);
+  // attachInterrupt(digitalPinToInterrupt(buttonPin), click, CHANGE);
   // Rotary pins
   pinMode(leftPin, INPUT_PULLUP);
   pinMode(rightPin, INPUT_PULLUP);
@@ -46,18 +45,12 @@ void process()
 
 void loop()
 {
-  int left = digitalRead(leftPin);
-  int right = digitalRead(rightPin);
-  if (left != lastEncoder) {
-    if (right != left) {
-      keycode++;
-      click();
-    } else {
-      keycode--;
-      click();
-    }
+  keySwitch.read();
+  if (keySwitch.wasReleased()) {
+    serialIn = keycode;
+    Keyboard.write(keycode);
+    process();
   }
-  lastEncoder = left;
 
   if (Serial.available() > 0)
   {
@@ -97,11 +90,4 @@ void buzz()
   {
     tone(buzzPin, serialIn << 3, 200);
   }
-}
-
-void click()
-{
-  serialIn = keycode;
-  Keyboard.write(keycode);
-  process();
 }
