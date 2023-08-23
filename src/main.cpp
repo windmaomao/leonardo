@@ -2,7 +2,6 @@
 #include <Keyboard.h>
 #include <JC_Button.h>
 #include "main.hpp"
-#include "notes.hpp"
 
 // Serial byte
 int serialIn;
@@ -19,7 +18,7 @@ int lastEncoder;
 // Previous time
 unsigned long prevTime = 0;
 // Keycode
-char keycode = 'A';
+int keycode = 100;
 
 void setup()
 {
@@ -50,7 +49,7 @@ void loop()
 
   // handle key press
   keySwitch.read();
-  if (keySwitch.wasReleased()) {
+  if (keySwitch.wasPressed()) {
     Serial.println("key");
     Serial.println(keycode);
     serialIn = keycode;
@@ -67,7 +66,9 @@ void loop()
     } else {
       keycode++;
     }
+    Serial.println("rotate");
     Serial.println(keycode);
+    Keyboard.write(keycode);
   }
 
   unsigned long currTime = millis();
@@ -92,13 +93,5 @@ void buzz()
   if (serialIn < 5)
     return;
 
-  int note = getKeyNote(serialIn);
-  if (note > 0)
-  {
-    tone(buzzPin, note, 400);
-  }
-  else
-  {
-    tone(buzzPin, serialIn << 3, 200);
-  }
+  tone(buzzPin, serialIn << 3, 50);
 }

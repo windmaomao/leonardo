@@ -1,1 +1,0 @@
-int getKeyNote(int key);
