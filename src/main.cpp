@@ -11,6 +11,10 @@ uint8_t lightsOn;
 int buzzPin = 4;
 // Interrupt pin
 int buttonPin = 7;
+// Rotary pins
+int leftPin = 3;
+int rightPin = 2;
+int lastEncoder;
 // Previous time
 unsigned long prevTime = 0;
 // Keycode
@@ -27,6 +31,9 @@ void setup()
   // Button pin
   pinMode(buttonPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(buttonPin), click, CHANGE);
+  // Rotary pins
+  pinMode(leftPin, INPUT_PULLUP);
+  pinMode(rightPin, INPUT_PULLUP);
   // Keyboard usb
   Keyboard.begin();
 }
@@ -39,6 +46,19 @@ void process()
 
 void loop()
 {
+  int left = digitalRead(leftPin);
+  int right = digitalRead(rightPin);
+  if (left != lastEncoder) {
+    if (right != left) {
+      keycode++;
+      click();
+    } else {
+      keycode--;
+      click();
+    }
+  }
+  lastEncoder = left;
+
   if (Serial.available() > 0)
   {
     serialIn = Serial.read();
