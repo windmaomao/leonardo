@@ -12,8 +12,8 @@ int buzzPin = 4;
 // Switch pin
 Button keySwitch(7);
 // Rotary pins
-Button leftSpin(3);
-Button rightSpin(2);
+Button leftSpin(6);
+Button rightSpin(5);
 int lastEncoder;
 // Previous time
 unsigned long prevTime = 0;
@@ -49,7 +49,8 @@ void loop()
 
   // handle key press
   keySwitch.read();
-  if (keySwitch.wasPressed()) {
+  if (keySwitch.wasPressed())
+  {
     Serial.println("key");
     Serial.println(keycode);
     serialIn = keycode;
@@ -60,10 +61,14 @@ void loop()
   // handle rotary spin
   bool l = leftSpin.read();
   bool r = rightSpin.read();
-  if (leftSpin.wasReleased() || leftSpin.wasPressed()) {
-    if (l == r) {
+  if (leftSpin.wasReleased() || leftSpin.wasPressed())
+  {
+    if (l == r)
+    {
       keycode--;
-    } else {
+    }
+    else
+    {
       keycode++;
     }
     Serial.println("rotate");
