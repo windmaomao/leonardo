@@ -47,6 +47,9 @@ void process()
 
 void printKey(int key)
 {
+  char str[10];
+  sprintf(str, "%c %d", key, key);
+  print(str);
 }
 
 void loop()
@@ -64,6 +67,7 @@ void loop()
   if (keySwitch.wasPressed())
   {
     press(keycode);
+    printKey(keycode);
   }
 
   // handle rotary spin
@@ -79,7 +83,7 @@ void loop()
     {
       keycode++;
     }
-    press(keycode);
+    printKey(keycode);
   }
 
   unsigned long currTime = millis();
@@ -112,10 +116,6 @@ void press(int key)
   Serial.println(key);
   Keyboard.write(key);
   serialIn = key;
-
-  char str[10];
-  sprintf(str, "%c %d", key, key);
-  print(str);
 }
 
 void print(const char *text)
