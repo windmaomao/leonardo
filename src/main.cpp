@@ -3,6 +3,11 @@
 #include <JC_Button.h>
 #include "main.hpp"
 
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
 // Serial byte
 int serialIn;
 // Light array
@@ -14,7 +19,8 @@ Button keySwitch(7);
 // Rotary pins
 Button leftSpin(6);
 Button rightSpin(5);
-int lastEncoder;
+// Oled display
+Adafruit_SSD1306 display(128, 32, &Wire, -1);
 // Previous time
 unsigned long prevTime = 0;
 // Keycode
@@ -29,6 +35,11 @@ void setup()
   leftSpin.begin();
   rightSpin.begin();
   Keyboard.begin();
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+  {
+    Serial.print(".");
+  }
+  print("Ready.");
 }
 
 void process()
@@ -99,4 +110,14 @@ void buzz()
     return;
 
   tone(buzzPin, serialIn << 3, 50);
+}
+
+void print(const char *text)
+{
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 12);
+  display.println(text);
+  display.display();
 }
