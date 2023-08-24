@@ -45,6 +45,10 @@ void process()
   buzz();
 }
 
+void printKey(int key)
+{
+}
+
 void loop()
 {
   // handle serial input
@@ -59,11 +63,7 @@ void loop()
   keySwitch.read();
   if (keySwitch.wasPressed())
   {
-    Serial.println("key");
-    Serial.println(keycode);
-    serialIn = keycode;
-    Keyboard.write(keycode);
-    process();
+    press(keycode);
   }
 
   // handle rotary spin
@@ -79,9 +79,7 @@ void loop()
     {
       keycode++;
     }
-    Serial.println("rotate");
-    Serial.println(keycode);
-    Keyboard.write(keycode);
+    press(keycode);
   }
 
   unsigned long currTime = millis();
@@ -96,7 +94,6 @@ void loop()
 void light()
 {
   lightsOn = (serialIn & 0xff) << 1;
-
   PORTB = lightsOn;
 }
 
@@ -107,6 +104,18 @@ void buzz()
     return;
 
   tone(buzzPin, serialIn << 3, 50);
+}
+
+void press(int key)
+{
+  Serial.println("key");
+  Serial.println(key);
+  Keyboard.write(key);
+  serialIn = key;
+
+  char str[10];
+  sprintf(str, "%c %d", key, key);
+  print(str);
 }
 
 void print(const char *text)
