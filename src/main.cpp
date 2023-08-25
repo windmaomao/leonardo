@@ -42,7 +42,7 @@ void setup()
 void process()
 {
   light((serialIn & 0xff) << 1);
-  buzz();
+  buzz(serialIn << 3);
 }
 
 void printKey(int key)
@@ -100,13 +100,9 @@ void light(uint8_t on)
   PORTB = on;
 }
 
-void buzz()
+void buzz(unsigned int freq)
 {
-  noTone(buzzPin);
-  if (serialIn < 5)
-    return;
-
-  tone(buzzPin, serialIn << 3, 50);
+  tone(buzzPin, freq, 10);
 }
 
 void press(int key)
