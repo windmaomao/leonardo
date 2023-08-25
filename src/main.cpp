@@ -24,7 +24,7 @@ Adafruit_SSD1306 display(128, 32, &Wire, -1);
 // Previous time
 unsigned long prevTime = 0;
 // Keycode
-int keycode = 100;
+int keycode = KEY_ESC;
 
 void setup()
 {
@@ -41,7 +41,7 @@ void setup()
 
 void process()
 {
-  light();
+  light((serialIn & 0xff) << 1);
   buzz();
 }
 
@@ -95,10 +95,9 @@ void loop()
   }
 }
 
-void light()
+void light(uint8_t on)
 {
-  lightsOn = (serialIn & 0xff) << 1;
-  PORTB = lightsOn;
+  PORTB = on;
 }
 
 void buzz()
