@@ -57,10 +57,12 @@ void loop()
     if (l == r)
     {
       keycode--;
+      buzzTone(2000);
     }
     else
     {
       keycode++;
+      buzzTone(1000);
     }
     printKey(keycode);
   }
@@ -73,13 +75,9 @@ void press(int key)
   buzzTone(key);
 }
 
-void buzzTone(unsigned int key)
+void buzzTone(unsigned int freq)
 {
-  for (int i = 4; i >= 0; i--)
-  {
-    tone(buzzPin, key << i, 10);
-    delay(50);
-  }
+  tone(buzzPin, freq, 20);
 }
 
 void displayText(const char *text)
