@@ -45,13 +45,11 @@ void loop()
   keySwitch.read();
   if (keySwitch.wasPressed())
   {
-    keyDown(keycode);
-    printKey(keycode);
+    sendKey(keycode, false);
   }
   if (keySwitch.wasReleased())
   {
-    keyUp(keycode);
-    printKey(32);
+    sendKey(keycode, true);
   }
 
   // handle rotary spin
@@ -62,27 +60,34 @@ void loop()
     if (l == r)
     {
       keycode--;
-      buzzTone(2000);
+      buzzTone(1000);
     }
     else
     {
       keycode++;
-      buzzTone(1000);
+      buzzTone(2000);
     }
     printKey(keycode);
   }
 }
 
-void keyDown(int key)
+void sendKey(int key, bool release)
 {
   Serial.println(key);
-  Keyboard.press(key);
-}
+  if (release)
+  {
 
-void keyUp(int key)
-{
-  Serial.println(key);
-  Keyboard.release(key);
+    Keyboard.release(key);
+  }
+  else
+  {
+
+    Keyboard.press(key);
+  }
+
+  char str[10];
+  sprintf(str, "%c %d %s", key, key, release ? "" : "DOWN");
+  displayText(str);
 }
 
 void buzzTone(unsigned int freq)
