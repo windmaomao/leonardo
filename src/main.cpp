@@ -32,10 +32,10 @@ void setup()
   displayText("Ready.");
 }
 
-void printKey(int key)
+void printKey(int key, const char *info)
 {
   char str[10];
-  sprintf(str, "%c %d", key, key);
+  sprintf(str, "%c %d %s", key, key, info);
   displayText(str);
 }
 
@@ -46,10 +46,12 @@ void loop()
   if (keySwitch.wasPressed())
   {
     sendKey(keycode, false);
+    printKey(keycode, "|");
   }
   if (keySwitch.wasReleased())
   {
     sendKey(keycode, true);
+    printKey(keycode, "");
   }
 
   // handle rotary spin
@@ -61,13 +63,14 @@ void loop()
     {
       keycode--;
       buzzTone(1000);
+      printKey(keycode, "<-");
     }
     else
     {
       keycode++;
       buzzTone(2000);
+      printKey(keycode, "->");
     }
-    printKey(keycode);
   }
 }
 
@@ -84,10 +87,6 @@ void sendKey(int key, bool release)
 
     Keyboard.press(key);
   }
-
-  char str[10];
-  sprintf(str, "%c %d %s", key, key, release ? "" : "DOWN");
-  displayText(str);
 }
 
 void buzzTone(unsigned int freq)
