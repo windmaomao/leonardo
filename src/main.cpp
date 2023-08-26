@@ -45,8 +45,13 @@ void loop()
   keySwitch.read();
   if (keySwitch.wasPressed())
   {
-    press(keycode);
+    keyDown(keycode);
     printKey(keycode);
+  }
+  if (keySwitch.wasReleased())
+  {
+    keyUp(keycode);
+    printKey(32);
   }
 
   // handle rotary spin
@@ -68,11 +73,16 @@ void loop()
   }
 }
 
-void press(int key)
+void keyDown(int key)
 {
   Serial.println(key);
-  Keyboard.write(key);
-  buzzTone(key);
+  Keyboard.press(key);
+}
+
+void keyUp(int key)
+{
+  Serial.println(key);
+  Keyboard.release(key);
 }
 
 void buzzTone(unsigned int freq)
