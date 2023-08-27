@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Keyboard.h>
+#include <EEPROM.h>
 #include <JC_Button.h>
 #include "main.hpp"
 
@@ -15,19 +16,24 @@ Button keySwitch(7);
 // Rotary pins
 Button leftSpin(6);
 Button rightSpin(5);
+Button confirmButton(8);
 // Oled display
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 // Keycode
 int keycode = KEY_ESC;
+// EEPROM address
+int address = 0;
 
 void setup()
 {
+  setupSettings();
   Serial.begin(9600);
   Keyboard.begin();
   keySwitch.begin();
   pinMode(buzzPin, OUTPUT);
   leftSpin.begin();
   rightSpin.begin();
+  confirmButton.begin();
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   displayText("Ready.");
 }
@@ -80,6 +86,13 @@ void loop()
       printKey(keycode, "->");
     }
   }
+
+  // handle confirm button
+  confirmButton.read();
+  if (confirmButton.wasReleased())
+  {
+    EEPROM.update(address, keycode);
+  }
 }
 
 void sendKey(int key, bool release)
@@ -110,4 +123,17 @@ void displayText(const char *text)
   display.setCursor(5, 10);
   display.println(text);
   display.display();
+}
+
+void setupSettings()
+{
+  int storedValue = EEPROM.read(address);
+  if (storedValue == 0xff)
+  {
+    EEPROM.update(address, keycode);
+  }
+  else
+  {
+    keycode = storedValue;
+  }
 }
