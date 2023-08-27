@@ -62,12 +62,20 @@ void loop()
     if (l == r)
     {
       keycode--;
+      if (keycode < 0)
+      {
+        keycode = 255;
+      }
       buzzTone(1000);
       printKey(keycode, "<-");
     }
     else
     {
       keycode++;
+      if (keycode > 255)
+      {
+        keycode = 0;
+      }
       buzzTone(2000);
       printKey(keycode, "->");
     }
