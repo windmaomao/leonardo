@@ -1,4 +1,4 @@
-void light(uint8_t on);
-void buzz(unsigned int freq);
-void press(int key);
-void print(const char *text);
+void buzzTone(unsigned int freq);
+void displayText(const char *text);
+void sendKey(int key, bool release);
+void setupSettings();

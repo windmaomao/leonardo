@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Keyboard.h>
+#include <EEPROM.h>
 #include <JC_Button.h>
 #include "main.hpp"
 
@@ -8,66 +9,66 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// Serial byte
-int serialIn;
-// Light array
-uint8_t lightsOn;
 // Buzz pin
 int buzzPin = 4;
-// Switch pin
-Button keySwitch(7);
+// Key switches
+const int keysCount = 2;
+Button keySwitches[keysCount] = {Button(7), Button(9)};
 // Rotary pins
 Button leftSpin(6);
 Button rightSpin(5);
+Button confirmButton(8);
 // Oled display
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
-// Previous time
-unsigned long prevTime = 0;
 // Keycode
 int keycode = KEY_ESC;
+// Selected key
+int selected = 0;
 
 void setup()
 {
-  DDRB = 0xff;
+  setupSettings();
   Serial.begin(9600);
-  keySwitch.begin();
+  Keyboard.begin();
+  for (int i = 0; i < keysCount; i++)
+  {
+    keySwitches[i].begin();
+  }
   pinMode(buzzPin, OUTPUT);
   leftSpin.begin();
   rightSpin.begin();
-  Keyboard.begin();
+  confirmButton.begin();
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  print("Ready.");
+  displayText("Ready.");
 }
 
-void process()
-{
-  light((serialIn & 0xff) << 1);
-  buzz(serialIn << 3);
-}
-
-void printKey(int key)
+void printKey(int key, const char *info)
 {
   char str[10];
-  sprintf(str, "%c %d", key, key);
-  print(str);
+  sprintf(str, "%c %d %s", key, key, info);
+  displayText(str);
 }
 
 void loop()
 {
-  // handle serial input
-  if (Serial.available() > 0)
+  char keyId[3];
+  // handle key switches
+  for (int i = 0; i < keysCount; i++)
   {
-    serialIn = Serial.read();
-    keycode = serialIn;
-    process();
-  }
-
-  // handle key press
-  keySwitch.read();
-  if (keySwitch.wasPressed())
-  {
-    press(keycode);
-    printKey(keycode);
+    sprintf(keyId, "<%d>", i + 1);
+    keySwitches[i].read();
+    if (keySwitches[i].wasPressed())
+    {
+      keycode = EEPROM.read(i);
+      sendKey(keycode, false);
+      printKey(keycode, keyId);
+    }
+    if (keySwitches[i].wasReleased())
+    {
+      sendKey(keycode, true);
+      printKey(keycode, "");
+      selected = i;
+    }
   }
 
   // handle rotary spin
@@ -78,42 +79,54 @@ void loop()
     if (l == r)
     {
       keycode--;
+      if (keycode < 0)
+      {
+        keycode = 255;
+      }
+      buzzTone(1000);
+      printKey(keycode, "<-");
     }
     else
     {
       keycode++;
+      if (keycode > 255)
+      {
+        keycode = 0;
+      }
+      buzzTone(2000);
+      printKey(keycode, "->");
     }
-    printKey(keycode);
   }
 
-  unsigned long currTime = millis();
-  if (currTime - prevTime >= 100)
+  // handle confirm button
+  confirmButton.read();
+  if (confirmButton.wasReleased())
   {
-    prevTime = currTime;
-    serialIn = serialIn >> 1;
-    process();
+    EEPROM.update(selected, keycode);
   }
 }
 
-void light(uint8_t on)
+void sendKey(int key, bool release)
 {
-  PORTB = on;
-}
-
-void buzz(unsigned int freq)
-{
-  tone(buzzPin, freq, 10);
-}
-
-void press(int key)
-{
-  Serial.println("key");
   Serial.println(key);
-  Keyboard.write(key);
-  serialIn = key;
+  if (release)
+  {
+
+    Keyboard.release(key);
+  }
+  else
+  {
+
+    Keyboard.press(key);
+  }
 }
 
-void print(const char *text)
+void buzzTone(unsigned int freq)
+{
+  tone(buzzPin, freq, 20);
+}
+
+void displayText(const char *text)
 {
   display.clearDisplay();
   display.setTextSize(2);
@@ -121,4 +134,17 @@ void print(const char *text)
   display.setCursor(5, 10);
   display.println(text);
   display.display();
+}
+
+void setupSettings()
+{
+  int storedValue = EEPROM.read(0);
+  if (storedValue == 0xff)
+  {
+    for (int i = 0; i < keysCount; i++)
+    {
+
+      EEPROM.update(i, keycode);
+    }
+  }
 }
