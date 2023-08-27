@@ -12,8 +12,10 @@
 // Buzz pin
 int buzzPin = 4;
 // Switch pin
-Button keySwitch(7);
-Button keySwitch2(9);
+// Button keySwitch(7);
+// Button keySwitch2(9);
+Button keySwitches[2] = {Button(7), Button(9)};
+
 // Rotary pins
 Button leftSpin(6);
 Button rightSpin(5);
@@ -22,16 +24,16 @@ Button confirmButton(8);
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 // Keycode
 int keycode = KEY_ESC;
-// EEPROM address
-int address = 0;
+// Selected key
+int selected = 0;
 
 void setup()
 {
   setupSettings();
   Serial.begin(9600);
   Keyboard.begin();
-  keySwitch.begin();
-  keySwitch2.begin();
+  keySwitches[0].begin();
+  keySwitches[1].begin();
   pinMode(buzzPin, OUTPUT);
   leftSpin.begin();
   rightSpin.begin();
@@ -50,33 +52,33 @@ void printKey(int key, const char *info)
 void loop()
 {
   // handle key press
-  keySwitch.read();
-  if (keySwitch.wasPressed())
+  keySwitches[0].read();
+  if (keySwitches[0].wasPressed())
   {
     keycode = EEPROM.read(0);
     sendKey(keycode, false);
     printKey(keycode, "|");
   }
-  if (keySwitch.wasReleased())
+  if (keySwitches[0].wasReleased())
   {
     sendKey(keycode, true);
     printKey(keycode, "");
-    address = 0;
+    selected = 0;
   }
 
   // handle key press 2
-  keySwitch2.read();
-  if (keySwitch2.wasPressed())
+  keySwitches[1].read();
+  if (keySwitches[1].wasPressed())
   {
     keycode = EEPROM.read(1);
     sendKey(keycode, false);
     printKey(keycode, "||");
   }
-  if (keySwitch2.wasReleased())
+  if (keySwitches[1].wasReleased())
   {
     sendKey(keycode, true);
     printKey(keycode, "");
-    address = 1;
+    selected = 1;
   }
 
   // handle rotary spin
@@ -110,7 +112,7 @@ void loop()
   confirmButton.read();
   if (confirmButton.wasReleased())
   {
-    EEPROM.update(address, keycode);
+    EEPROM.update(selected, keycode);
   }
 }
 
