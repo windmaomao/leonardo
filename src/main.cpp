@@ -51,15 +51,17 @@ void printKey(int key, const char *info)
 
 void loop()
 {
+  char keyId[3];
   // handle key switches
   for (int i = 0; i < keysCount; i++)
   {
+    sprintf(keyId, "<%d>", i + 1);
     keySwitches[i].read();
     if (keySwitches[i].wasPressed())
     {
       keycode = EEPROM.read(i);
       sendKey(keycode, false);
-      printKey(keycode, "|");
+      printKey(keycode, keyId);
     }
     if (keySwitches[i].wasReleased())
     {
