@@ -11,11 +11,9 @@
 
 // Buzz pin
 int buzzPin = 4;
-// Switch pin
-// Button keySwitch(7);
-// Button keySwitch2(9);
-Button keySwitches[2] = {Button(7), Button(9)};
-
+// Key switches
+const int keysCount = 2;
+Button keySwitches[keysCount] = {Button(7), Button(9)};
 // Rotary pins
 Button leftSpin(6);
 Button rightSpin(5);
@@ -32,8 +30,10 @@ void setup()
   setupSettings();
   Serial.begin(9600);
   Keyboard.begin();
-  keySwitches[0].begin();
-  keySwitches[1].begin();
+  for (int i = 0; i < keysCount; i++)
+  {
+    keySwitches[i].begin();
+  }
   pinMode(buzzPin, OUTPUT);
   leftSpin.begin();
   rightSpin.begin();
@@ -51,34 +51,22 @@ void printKey(int key, const char *info)
 
 void loop()
 {
-  // handle key press
-  keySwitches[0].read();
-  if (keySwitches[0].wasPressed())
+  // handle key switches
+  for (int i = 0; i < keysCount; i++)
   {
-    keycode = EEPROM.read(0);
-    sendKey(keycode, false);
-    printKey(keycode, "|");
-  }
-  if (keySwitches[0].wasReleased())
-  {
-    sendKey(keycode, true);
-    printKey(keycode, "");
-    selected = 0;
-  }
-
-  // handle key press 2
-  keySwitches[1].read();
-  if (keySwitches[1].wasPressed())
-  {
-    keycode = EEPROM.read(1);
-    sendKey(keycode, false);
-    printKey(keycode, "||");
-  }
-  if (keySwitches[1].wasReleased())
-  {
-    sendKey(keycode, true);
-    printKey(keycode, "");
-    selected = 1;
+    keySwitches[i].read();
+    if (keySwitches[i].wasPressed())
+    {
+      keycode = EEPROM.read(i);
+      sendKey(keycode, false);
+      printKey(keycode, "|");
+    }
+    if (keySwitches[i].wasReleased())
+    {
+      sendKey(keycode, true);
+      printKey(keycode, "");
+      selected = i;
+    }
   }
 
   // handle rotary spin
@@ -151,7 +139,10 @@ void setupSettings()
   int storedValue = EEPROM.read(0);
   if (storedValue == 0xff)
   {
-    EEPROM.update(0, keycode);
-    EEPROM.update(1, keycode);
+    for (int i = 0; i < keysCount; i++)
+    {
+
+      EEPROM.update(i, keycode);
+    }
   }
 }
