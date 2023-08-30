@@ -9,7 +9,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-
 #include <ClickEncoder.h>
 #include <TimerOne.h>
 
@@ -26,13 +25,19 @@ Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
 ClickEncoder rotary(5, 6, 8);
-void timerIsr() {
+void timerIsr()
+{
   rotary.service();
 }
 
 // Current keycode
 int keycode = KEY_ESC;
 
+// Page modes
+#define NORMAL_MODE 0;
+#define MEDIA_MODE 1;
+int mode = NORMAL_MODE;
+Button modeSwitch(10);
 
 void setup()
 {
@@ -52,18 +57,40 @@ void setup()
   Timer1.attachInterrupt(timerIsr);
   rotary.setAccelerationEnabled(1);
 
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  displayText("Ready.");
-}
+  modeSwitch.begin();
 
-void printKey(int key, const char *info)
-{
-  char str[10];
-  sprintf(str, "%c %d %s", key, key, info);
-  displayText(str);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  printMode(mode);
 }
 
 void loop()
+{
+  // handle mode switch
+  modeSwitch.read();
+  if (modeSwitch.wasPressed())
+  {
+    mode++;
+    if (mode > 1)
+    {
+      mode = 0;
+    }
+
+    buzzTone(2000);
+    printMode(mode);
+  }
+
+  // handle each mode
+  switch (mode)
+  {
+  case 1:
+    loopMediaMode();
+    break;
+  default:
+    loopNormalMode();
+  }
+}
+
+void loopNormalMode()
 {
   // handle key switches
   char keyId[3];
@@ -82,11 +109,14 @@ void loop()
     if (keySwitches[i].wasReleased())
     {
       // long press
-      if (millis() - lastPressTimes[i] > 1000) {
+      if (millis() - lastPressTimes[i] > 1000)
+      {
         EEPROM.update(i, keycode);
         printKey(keycode, "o");
         buzzTone(500);
-      } else {
+      }
+      else
+      {
         tmpCode = EEPROM.read(i);
         sendKey(tmpCode, true);
         printKey(tmpCode, "");
@@ -96,10 +126,54 @@ void loop()
 
   // handle rotary
   int inc = rotary.getValue();
-  if (inc != 0) {
+  if (inc != 0)
+  {
     keycode += inc;
     keycode = constrain(keycode, 1, 255);
     printKey(keycode, "");
+  }
+
+  ClickEncoder::Button b = rotary.getButton();
+  if (b == ClickEncoder::Clicked)
+  {
+    Keyboard.write(keycode);
+  }
+}
+
+void loopMediaMode()
+{
+  // handle stop/resume button
+  keySwitches[0].read();
+  if (keySwitches[0].wasPressed())
+  {
+    Keyboard.write(201);
+  }
+
+  // handle mute
+  keySwitches[1].read();
+  if (keySwitches[1].wasPressed())
+  {
+    Keyboard.write(203);
+  }
+
+  // handle volume knob
+  int inc = rotary.getValue();
+  if (inc != 0)
+  {
+    if (inc < 0)
+    {
+      for (int i = 0; i > inc; i--)
+      {
+        Keyboard.write(204);
+      }
+    }
+    else
+    {
+      for (int i = 0; i < inc; i++)
+      {
+        Keyboard.write(205);
+      }
+    }
   }
 }
 
@@ -108,12 +182,10 @@ void sendKey(int key, bool release)
   Serial.println(key);
   if (release)
   {
-
     Keyboard.release(key);
   }
   else
   {
-
     Keyboard.press(key);
   }
 }
@@ -131,6 +203,25 @@ void displayText(const char *text)
   display.setCursor(5, 10);
   display.println(text);
   display.display();
+}
+
+void printKey(int key, const char *info)
+{
+  char str[10];
+  sprintf(str, "%c %d %s", key, key, info);
+  displayText(str);
+}
+
+void printMode(int m)
+{
+  switch (m)
+  {
+  case 1:
+    displayText("2> MEDIA");
+    break;
+  default:
+    displayText("1> NORMAL");
+  }
 }
 
 void setupSettings()
