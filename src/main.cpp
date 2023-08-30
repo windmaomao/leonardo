@@ -149,17 +149,30 @@ void loopMediaMode()
     Keyboard.write(201);
   }
 
+  // handle mute
+  keySwitches[1].read();
+  if (keySwitches[1].wasPressed())
+  {
+    Keyboard.write(203);
+  }
+
   // handle volume knob
   int inc = rotary.getValue();
   if (inc != 0)
   {
     if (inc < 0)
     {
-      Keyboard.write(204);
+      for (int i = 0; i > inc; i--)
+      {
+        Keyboard.write(204);
+      }
     }
     else
     {
-      Keyboard.write(205);
+      for (int i = 0; i < inc; i++)
+      {
+        Keyboard.write(205);
+      }
     }
   }
 }
@@ -204,10 +217,10 @@ void printMode(int m)
   switch (m)
   {
   case 1:
-    displayText("Media Mode");
+    displayText("2> MEDIA");
     break;
   default:
-    displayText("Normal Mode");
+    displayText("1> NORMAL");
   }
 }
 
