@@ -6,5 +6,6 @@ void setupSettings();
 void loopMenuMode();
 void loopNormalMode();
 void loopMediaMode();
+void loopRecordMode();
 void printMode(int m);
 void selectMode(int m);

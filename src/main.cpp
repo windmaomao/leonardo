@@ -46,6 +46,7 @@ int keycode = KEY_ESC;
 #define MENU_MODE (0)
 #define NORMAL_MODE (1)
 #define MEDIA_MODE (2)
+#define RECORD_MODE (3)
 int mode = MEDIA_MODE;
 
 // Menu button
@@ -96,6 +97,9 @@ void loop()
     break;
   case MEDIA_MODE:
     loopMediaMode();
+    break;
+  case RECORD_MODE:
+    loopRecordMode();
     break;
   }
 }
@@ -215,6 +219,43 @@ void loopMediaMode()
   }
 }
 
+void loopRecordMode()
+{
+  // handle record button
+  keySwitches[0].read();
+  if (keySwitches[0].wasPressed())
+  {
+    Keyboard.write('R');
+  }
+
+  // handle play back
+  keySwitches[1].read();
+  if (keySwitches[1].wasPressed())
+  {
+    Keyboard.write(KEY_RETURN);
+  }
+
+  // handle bar move
+  int inc = rotary.getValue();
+  if (inc != 0)
+  {
+    if (inc < 0)
+    {
+      for (int i = 0; i > inc; i--)
+      {
+        Keyboard.write(',');
+      }
+    }
+    else
+    {
+      for (int i = 0; i < inc; i++)
+      {
+        Keyboard.write('.');
+      }
+    }
+  }
+}
+
 void sendKey(int key, bool release)
 {
   Serial.println(key);
@@ -254,11 +295,15 @@ void printMode(int m)
 {
   switch (m)
   {
-  case 1:
-    displayText("2> MEDIA");
+  case NORMAL_MODE:
+    displayText(": NORMAL");
     break;
-  default:
-    displayText("1> NORMAL");
+  case MEDIA_MODE:
+    displayText(": MEDIA");
+    break;
+  case RECORD_MODE:
+    displayText(": RECORD");
+    break;
   }
 }
 
