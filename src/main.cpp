@@ -12,13 +12,13 @@
 #include <ClickEncoder.h>
 #include <TimerOne.h>
 
-#define PIN_4 (4)
-#define PIN_5 (5)
-#define PIN_6 (6)
-#define PIN_7 (7)
-#define PIN_8 (8)
-#define PIN_9 (9)
-#define PIN_10 (10)
+#define PIN_4 (4)   // buzzer
+#define PIN_5 (5)   // rotary A
+#define PIN_6 (6)   // rotary B
+#define PIN_7 (7)   // key 1
+#define PIN_8 (8)   // rotary click
+#define PIN_9 (9)   // key 2
+#define PIN_10 (10) // menu button
 
 // Buzz pin
 int buzzPin = PIN_4;
@@ -42,9 +42,13 @@ void timerIsr()
 int keycode = KEY_ESC;
 
 // Page modes
-#define NORMAL_MODE 0;
-#define MEDIA_MODE 1;
+#define MODE_COUNT 2
+#define MENU_MODE (-1)
+#define NORMAL_MODE (0)
+#define MEDIA_MODE (1)
 int mode = NORMAL_MODE;
+
+// Menu button
 Button modeSwitch(PIN_10);
 
 void setup()
@@ -78,7 +82,7 @@ void loop()
   if (modeSwitch.wasPressed())
   {
     mode++;
-    if (mode > 1)
+    if (mode >= 1)
     {
       mode = 0;
     }
