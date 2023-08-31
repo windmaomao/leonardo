@@ -12,19 +12,27 @@
 #include <ClickEncoder.h>
 #include <TimerOne.h>
 
+#define PIN_4 (4)
+#define PIN_5 (5)
+#define PIN_6 (6)
+#define PIN_7 (7)
+#define PIN_8 (8)
+#define PIN_9 (9)
+#define PIN_10 (10)
+
 // Buzz pin
-int buzzPin = 4;
+int buzzPin = PIN_4;
 
 // Key switches
 const int keysCount = 2;
-Button keySwitches[keysCount] = {Button(7), Button(9)};
+Button keySwitches[keysCount] = {Button(PIN_7), Button(PIN_9)};
 uint32_t lastPressTimes[2] = {0, 0};
 
 // Oled display
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
-ClickEncoder rotary(5, 6, 8);
+ClickEncoder rotary(PIN_5, PIN_6, PIN_8);
 void timerIsr()
 {
   rotary.service();
@@ -37,7 +45,7 @@ int keycode = KEY_ESC;
 #define NORMAL_MODE 0;
 #define MEDIA_MODE 1;
 int mode = NORMAL_MODE;
-Button modeSwitch(10);
+Button modeSwitch(PIN_10);
 
 void setup()
 {
