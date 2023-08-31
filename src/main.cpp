@@ -18,7 +18,7 @@
 #define PIN_7 (7)   // key 1
 #define PIN_8 (8)   // rotary click
 #define PIN_9 (9)   // key 2
-#define PIN_10 (10) // menu button
+#define PIN_10 (10) // menu toggle
 
 // Buzz pin
 int buzzPin = PIN_4;
@@ -43,13 +43,14 @@ int keycode = KEY_ESC;
 
 // Page modes
 #define MODE_COUNT 2
-#define MENU_MODE (-1)
-#define NORMAL_MODE (0)
-#define MEDIA_MODE (1)
-int mode = NORMAL_MODE;
+#define MENU_MODE (0)
+#define NORMAL_MODE (1)
+#define MEDIA_MODE (2)
+int mode = MEDIA_MODE;
 
 // Menu button
-Button modeSwitch(PIN_10);
+Button menuToggle(PIN_10);
+int menuSelect;
 
 void setup()
 {
@@ -69,7 +70,7 @@ void setup()
   Timer1.attachInterrupt(timerIsr);
   rotary.setAccelerationEnabled(1);
 
-  modeSwitch.begin();
+  menuToggle.begin();
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   printMode(mode);
@@ -77,28 +78,53 @@ void setup()
 
 void loop()
 {
-  // handle mode switch
-  modeSwitch.read();
-  if (modeSwitch.wasPressed())
+  // handle menu toggle
+  menuToggle.read();
+  if (menuToggle.wasPressed())
   {
-    mode++;
-    if (mode >= 1)
-    {
-      mode = 0;
-    }
-
-    buzzTone(2000);
-    printMode(mode);
+    mode = MENU_MODE;
   }
 
   // handle each mode
   switch (mode)
   {
-  case 1:
+  case MENU_MODE:
+    loopMenuMode();
+    break;
+  case NORMAL_MODE:
+    loopNormalMode();
+    break;
+  case MEDIA_MODE:
     loopMediaMode();
     break;
-  default:
-    loopNormalMode();
+  }
+}
+
+void loopMenuMode()
+{
+  // handle key switches
+  if (keySwitches[0].wasPressed())
+  {
+    selectMode(NORMAL_MODE);
+  }
+  if (keySwitches[1].wasPressed())
+  {
+    selectMode(MEDIA_MODE);
+  }
+
+  // handle rotary
+  int inc = rotary.getValue();
+  if (inc != 0)
+  {
+    menuSelect += inc;
+    menuSelect = constrain(menuSelect, 1, MODE_COUNT - 1);
+    printMode(menuSelect);
+  }
+
+  ClickEncoder::Button b = rotary.getButton();
+  if (b == ClickEncoder::Clicked)
+  {
+    selectMode(menuSelect);
   }
 }
 
@@ -234,6 +260,13 @@ void printMode(int m)
   default:
     displayText("1> NORMAL");
   }
+}
+
+void selectMode(int m)
+{
+  mode = m;
+  printMode(m);
+  buzzTone(1500);
 }
 
 void setupSettings()
