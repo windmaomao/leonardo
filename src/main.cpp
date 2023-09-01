@@ -54,8 +54,14 @@ const char *modeLabels[] = {
 void (*modeLoops[])() = {
     loopMenuMode,
     loopNormalMode,
-    loopMediaMode,
+    loopGenericMode,
     loopRecordMode};
+int modeKeys[][5] = {
+    {},
+    {},
+    {204, 205, 0, 201, 203},        // Media
+    {',', '.', 0, 'R', KEY_RETURN}, // Record
+};
 
 // Menu button
 Button menuToggle(PIN_10);
@@ -177,22 +183,8 @@ void loopNormalMode()
   }
 }
 
-void loopMediaMode()
+void loopGenericMode()
 {
-  // handle stop/resume button
-  keySwitches[0].read();
-  if (keySwitches[0].wasPressed())
-  {
-    sendKey(201);
-  }
-
-  // handle mute
-  keySwitches[1].read();
-  if (keySwitches[1].wasPressed())
-  {
-    sendKey(203);
-  }
-
   // handle volume knob
   int inc = rotary.getValue();
   if (inc != 0)
@@ -201,16 +193,29 @@ void loopMediaMode()
     {
       for (int i = 0; i > inc; i--)
       {
-        sendKey(204);
+        sendKey(modeKeys[mode][0]);
       }
     }
     else
     {
       for (int i = 0; i < inc; i++)
       {
-        sendKey(205);
+        sendKey(modeKeys[mode][1]);
       }
     }
+  }
+
+  // handle switches
+  keySwitches[0].read();
+  if (keySwitches[0].wasPressed())
+  {
+    sendKey(modeKeys[mode][3]);
+  }
+
+  keySwitches[1].read();
+  if (keySwitches[1].wasPressed())
+  {
+    sendKey(modeKeys[mode][4]);
   }
 }
 
