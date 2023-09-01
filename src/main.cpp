@@ -101,21 +101,7 @@ void loop()
   }
 
   // handle each mode
-  switch (mode)
-  {
-  case MENU_MODE:
-    loopMenuMode();
-    break;
-  case NORMAL_MODE:
-    loopNormalMode();
-    break;
-  case MEDIA_MODE:
-    loopMediaMode();
-    break;
-  case RECORD_MODE:
-    loopRecordMode();
-    break;
-  }
+  modeLoops[mode]();
 }
 
 void loopMenuMode()
@@ -155,7 +141,6 @@ void loopNormalMode()
     {
       tmpCode = EEPROM.read(i);
       sendKey(tmpCode, false);
-      printKey(tmpCode, "|");
       lastPressTimes[i] = millis();
     }
     if (keySwitches[i].wasReleased())
@@ -164,14 +149,12 @@ void loopNormalMode()
       if (millis() - lastPressTimes[i] > 1000)
       {
         EEPROM.update(i, keycode);
-        printKey(keycode, "o");
         buzzTone(500);
       }
       else
       {
         tmpCode = EEPROM.read(i);
         sendKey(tmpCode, true);
-        printKey(tmpCode, "");
       }
     }
   }
@@ -198,14 +181,14 @@ void loopMediaMode()
   keySwitches[0].read();
   if (keySwitches[0].wasPressed())
   {
-    Keyboard.write(201);
+    sendKey(201);
   }
 
   // handle mute
   keySwitches[1].read();
   if (keySwitches[1].wasPressed())
   {
-    Keyboard.write(203);
+    sendKey(203);
   }
 
   // handle volume knob
@@ -216,14 +199,14 @@ void loopMediaMode()
     {
       for (int i = 0; i > inc; i--)
       {
-        Keyboard.write(204);
+        sendKey(204);
       }
     }
     else
     {
       for (int i = 0; i < inc; i++)
       {
-        Keyboard.write(205);
+        sendKey(205);
       }
     }
   }
@@ -266,6 +249,12 @@ void loopRecordMode()
   }
 }
 
+void sendKey(int key)
+{
+  Serial.println(key);
+  Keyboard.write(key);
+  printKey(key);
+}
 void sendKey(int key, bool release)
 {
   Serial.println(key);
@@ -277,6 +266,7 @@ void sendKey(int key, bool release)
   {
     Keyboard.press(key);
   }
+  printKey(key, release ? "" : "|");
 }
 
 void buzzTone(unsigned int freq)
@@ -294,6 +284,12 @@ void displayText(const char *text)
   display.display();
 }
 
+void printKey(int key)
+{
+  char str[10];
+  sprintf(str, "%c %d", key, key);
+  displayText(str);
+}
 void printKey(int key, const char *info)
 {
   char str[10];
@@ -303,21 +299,7 @@ void printKey(int key, const char *info)
 
 void printMode(int m)
 {
-  switch (m)
-  {
-  case MENU_MODE:
-    displayText(": MENU");
-    break;
-  case NORMAL_MODE:
-    displayText(": NORMAL");
-    break;
-  case MEDIA_MODE:
-    displayText(": MEDIA");
-    break;
-  case RECORD_MODE:
-    displayText(": RECORD");
-    break;
-  }
+  displayText(modeLabels[m]);
 }
 
 void cancelMode()
