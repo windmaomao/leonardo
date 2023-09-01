@@ -12,19 +12,27 @@
 #include <ClickEncoder.h>
 #include <TimerOne.h>
 
+#define PIN_4 (4)   // buzzer
+#define PIN_5 (5)   // rotary A
+#define PIN_6 (6)   // rotary B
+#define PIN_7 (7)   // key 1
+#define PIN_8 (8)   // rotary click
+#define PIN_9 (9)   // key 2
+#define PIN_10 (10) // menu toggle
+
 // Buzz pin
-int buzzPin = 4;
+int buzzPin = PIN_4;
 
 // Key switches
 const int keysCount = 2;
-Button keySwitches[keysCount] = {Button(7), Button(9)};
+Button keySwitches[keysCount] = {Button(PIN_7), Button(PIN_9)};
 uint32_t lastPressTimes[2] = {0, 0};
 
 // Oled display
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
-ClickEncoder rotary(5, 6, 8);
+ClickEncoder rotary(PIN_5, PIN_6, PIN_8);
 void timerIsr()
 {
   rotary.service();
@@ -33,11 +41,38 @@ void timerIsr()
 // Current keycode
 int keycode = KEY_ESC;
 
-// Page modes
-#define NORMAL_MODE 0;
-#define MEDIA_MODE 1;
-int mode = NORMAL_MODE;
-Button modeSwitch(10);
+// Modes
+#define MODE_COUNT 6
+#define MENU_MODE (0)
+int mode = MENU_MODE + 1;
+int lastMode;
+const char *modeLabels[] = {
+    "MENU",
+    "NORMAL",
+    "CODE",
+    "MEDIA",
+    "SCREEN",
+    "RECORD"};
+void (*modeLoops[])() = {
+    loopMenuMode,
+    loopNormalMode,
+    loopGenericMode, // Code
+    loopGenericMode, // Media
+    loopGenericMode, // Screen
+    loopGenericMode, // Record
+};
+int modeKeys[][5] = {
+    {},
+    {},
+    {KEY_PAGE_UP, KEY_PAGE_DOWN, 0, KEY_ESC, KEY_RETURN}, // Code
+    {KEY_F11, KEY_F12, 0, KEY_F8, KEY_F10},               // Media
+    {KEY_F14, KEY_F15, 0, ' ', KEY_TAB},                  // Screen
+    {',', '.', 0, 'R', ' '},                              // Record
+};
+
+// Menu button
+Button menuToggle(PIN_10);
+int menuSelect;
 
 void setup()
 {
@@ -57,53 +92,68 @@ void setup()
   Timer1.attachInterrupt(timerIsr);
   rotary.setAccelerationEnabled(1);
 
-  modeSwitch.begin();
+  menuToggle.begin();
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  printMode(mode);
 }
 
 void loop()
 {
-  // handle mode switch
-  modeSwitch.read();
-  if (modeSwitch.wasPressed())
+  // handle menu toggle
+  menuToggle.read();
+  if (menuToggle.wasPressed())
   {
-    mode++;
-    if (mode > 1)
+    if (mode == MENU_MODE)
     {
-      mode = 0;
+      selectMode(menuSelect);
     }
-
-    buzzTone(2000);
-    printMode(mode);
+    else
+    {
+      lastMode = mode;
+      menuSelect = lastMode;
+      selectMode(MENU_MODE);
+    }
   }
 
   // handle each mode
-  switch (mode)
+  modeLoops[mode]();
+}
+
+void loopMenuMode()
+{
+  // handle key switches
+  keySwitches[0].read();
+  if (keySwitches[0].wasPressed())
   {
-  case 1:
-    loopMediaMode();
-    break;
-  default:
-    loopNormalMode();
+    selectMode(menuSelect);
+  }
+  keySwitches[1].read();
+  if (keySwitches[1].wasPressed())
+  {
+    cancelMode();
+  }
+
+  // handle rotary
+  int inc = rotary.getValue();
+  if (inc != 0)
+  {
+    menuSelect += inc;
+    menuSelect = constrain(menuSelect, 1, MODE_COUNT - 1);
+    displayMenu(modeLabels[menuSelect]);
   }
 }
 
 void loopNormalMode()
 {
   // handle key switches
-  char keyId[3];
   int tmpCode;
   for (int i = 0; i < keysCount; i++)
   {
-    sprintf(keyId, "<%d>", i + 1);
     keySwitches[i].read();
     if (keySwitches[i].wasPressed())
     {
       tmpCode = EEPROM.read(i);
       sendKey(tmpCode, false);
-      printKey(tmpCode, "|");
       lastPressTimes[i] = millis();
     }
     if (keySwitches[i].wasReleased())
@@ -112,14 +162,12 @@ void loopNormalMode()
       if (millis() - lastPressTimes[i] > 1000)
       {
         EEPROM.update(i, keycode);
-        printKey(keycode, "o");
         buzzTone(500);
       }
       else
       {
         tmpCode = EEPROM.read(i);
         sendKey(tmpCode, true);
-        printKey(tmpCode, "");
       }
     }
   }
@@ -140,22 +188,8 @@ void loopNormalMode()
   }
 }
 
-void loopMediaMode()
+void loopGenericMode()
 {
-  // handle stop/resume button
-  keySwitches[0].read();
-  if (keySwitches[0].wasPressed())
-  {
-    Keyboard.write(201);
-  }
-
-  // handle mute
-  keySwitches[1].read();
-  if (keySwitches[1].wasPressed())
-  {
-    Keyboard.write(203);
-  }
-
   // handle volume knob
   int inc = rotary.getValue();
   if (inc != 0)
@@ -164,19 +198,39 @@ void loopMediaMode()
     {
       for (int i = 0; i > inc; i--)
       {
-        Keyboard.write(204);
+        sendKey(modeKeys[mode][0]);
       }
     }
     else
     {
       for (int i = 0; i < inc; i++)
       {
-        Keyboard.write(205);
+        sendKey(modeKeys[mode][1]);
       }
+    }
+  }
+
+  // handle switches
+  for (int i = 0; i < keysCount; i++)
+  {
+    keySwitches[i].read();
+    if (keySwitches[i].wasPressed())
+    {
+      sendKey(modeKeys[mode][3 + i], false);
+    }
+    if (keySwitches[i].wasReleased())
+    {
+      sendKey(modeKeys[mode][3 + i], true);
     }
   }
 }
 
+void sendKey(int key)
+{
+  Serial.println(key);
+  Keyboard.write(key);
+  printKey(key);
+}
 void sendKey(int key, bool release)
 {
   Serial.println(key);
@@ -188,6 +242,7 @@ void sendKey(int key, bool release)
   {
     Keyboard.press(key);
   }
+  printKey(key, release ? "" : "|");
 }
 
 void buzzTone(unsigned int freq)
@@ -200,11 +255,17 @@ void displayText(const char *text)
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
-  display.setCursor(5, 10);
+  display.setCursor(5, 15);
   display.println(text);
   display.display();
 }
 
+void printKey(int key)
+{
+  char str[10];
+  sprintf(str, "%c %d", key, key);
+  displayText(str);
+}
 void printKey(int key, const char *info)
 {
   char str[10];
@@ -214,14 +275,41 @@ void printKey(int key, const char *info)
 
 void printMode(int m)
 {
-  switch (m)
+  displayText(modeLabels[m]);
+}
+
+void cancelMode()
+{
+  mode = lastMode;
+  displayText(modeLabels[mode]);
+  buzzTone(500);
+}
+
+void selectMode(int m)
+{
+  mode = m;
+  if (mode == MENU_MODE)
   {
-  case 1:
-    displayText("2> MEDIA");
-    break;
-  default:
-    displayText("1> NORMAL");
+    displayMenu(modeLabels[menuSelect]);
   }
+  else
+  {
+    displayText(modeLabels[m]);
+  }
+  buzzTone(1500);
+}
+
+void displayMenu(const char *text)
+{
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 10);
+  display.println("MENU");
+  display.setCursor(0, 25);
+  display.print("> ");
+  display.println(text);
+  display.display();
 }
 
 void setupSettings()
