@@ -146,11 +146,9 @@ void loopMenuMode()
 void loopNormalMode()
 {
   // handle key switches
-  char keyId[3];
   int tmpCode;
   for (int i = 0; i < keysCount; i++)
   {
-    sprintf(keyId, "<%d>", i + 1);
     keySwitches[i].read();
     if (keySwitches[i].wasPressed())
     {
@@ -213,16 +211,17 @@ void loopGenericMode()
   }
 
   // handle switches
-  keySwitches[0].read();
-  if (keySwitches[0].wasPressed())
+  for (int i = 0; i < keysCount; i++)
   {
-    sendKey(modeKeys[mode][3]);
-  }
-
-  keySwitches[1].read();
-  if (keySwitches[1].wasPressed())
-  {
-    sendKey(modeKeys[mode][4]);
+    keySwitches[i].read();
+    if (keySwitches[i].wasPressed())
+    {
+      sendKey(modeKeys[mode][3 + i], false);
+    }
+    if (keySwitches[i].wasReleased())
+    {
+      sendKey(modeKeys[mode][3 + i], true);
+    }
   }
 }
 
