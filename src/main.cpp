@@ -41,13 +41,10 @@ void timerIsr()
 // Current keycode
 int keycode = KEY_ESC;
 
-// Page modes
+// Modes
 #define MODE_COUNT 4
 #define MENU_MODE (0)
-#define NORMAL_MODE (1)
-#define MEDIA_MODE (2)
-#define RECORD_MODE (3)
-int mode = MEDIA_MODE;
+int mode = MENU_MODE + 1;
 int lastMode;
 const char *modeLabels[] = {
     "MENU",
@@ -85,7 +82,6 @@ void setup()
   menuToggle.begin();
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  printMode(mode);
 }
 
 void loop()
@@ -94,10 +90,16 @@ void loop()
   menuToggle.read();
   if (menuToggle.wasPressed())
   {
-    lastMode = mode;
-    menuSelect = lastMode;
-    selectMode(MENU_MODE);
-    printMode(menuSelect);
+    if (mode == MENU_MODE)
+    {
+      selectMode(menuSelect);
+    }
+    else
+    {
+      lastMode = mode;
+      menuSelect = lastMode;
+      selectMode(MENU_MODE);
+    }
   }
 
   // handle each mode
@@ -124,7 +126,7 @@ void loopMenuMode()
   {
     menuSelect += inc;
     menuSelect = constrain(menuSelect, 1, MODE_COUNT - 1);
-    printMode(menuSelect);
+    displayMenu(modeLabels[menuSelect]);
   }
 }
 
@@ -279,7 +281,7 @@ void displayText(const char *text)
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
-  display.setCursor(5, 10);
+  display.setCursor(5, 15);
   display.println(text);
   display.display();
 }
@@ -305,15 +307,35 @@ void printMode(int m)
 void cancelMode()
 {
   mode = lastMode;
-  printMode(mode);
+  displayText(modeLabels[mode]);
   buzzTone(500);
 }
 
 void selectMode(int m)
 {
   mode = m;
-  printMode(m);
+  if (mode == MENU_MODE)
+  {
+    displayMenu(modeLabels[menuSelect]);
+  }
+  else
+  {
+    displayText(modeLabels[m]);
+  }
   buzzTone(1500);
+}
+
+void displayMenu(const char *text)
+{
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 10);
+  display.println("MENU");
+  display.setCursor(0, 25);
+  display.print("> ");
+  display.println(text);
+  display.display();
 }
 
 void setupSettings()

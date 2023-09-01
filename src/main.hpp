@@ -12,3 +12,4 @@ void loopRecordMode();
 void printMode(int m);
 void selectMode(int m);
 void cancelMode();
+void displayMenu(const char *text);
