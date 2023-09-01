@@ -42,7 +42,7 @@ void timerIsr()
 int keycode = KEY_ESC;
 
 // Modes
-#define MODE_COUNT 4
+#define MODE_COUNT 6
 #define MENU_MODE (0)
 int mode = MENU_MODE + 1;
 int lastMode;
@@ -59,15 +59,15 @@ void (*modeLoops[])() = {
     loopGenericMode, // Code
     loopGenericMode, // Media
     loopGenericMode, // Screen
-    loopRecordMode   // Record
+    loopGenericMode, // Record
 };
 int modeKeys[][5] = {
     {},
     {},
     {KEY_PAGE_UP, KEY_PAGE_DOWN, 0, KEY_ESC, KEY_RETURN}, // Code
-    {204, 205, 0, 201, 203},                              // Media
-    {207, 208, 0, KEY_PAGE_UP, KEY_PAGE_DOWN},            // Screen
-    {',', '.', 0, 'R', KEY_RETURN},                       // Record
+    {KEY_F11, KEY_F12, 0, KEY_F8, KEY_F10},               // Media
+    {KEY_F14, KEY_F15, 0, ' ', KEY_TAB},                  // Screen
+    {',', '.', 0, 'R', ' '},                              // Record
 };
 
 // Menu button
