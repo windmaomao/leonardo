@@ -225,43 +225,6 @@ void loopGenericMode()
   }
 }
 
-void loopRecordMode()
-{
-  // handle record button
-  keySwitches[0].read();
-  if (keySwitches[0].wasPressed())
-  {
-    Keyboard.write('R');
-  }
-
-  // handle play back
-  keySwitches[1].read();
-  if (keySwitches[1].wasPressed())
-  {
-    Keyboard.write(KEY_RETURN);
-  }
-
-  // handle bar move
-  int inc = rotary.getValue();
-  if (inc != 0)
-  {
-    if (inc < 0)
-    {
-      for (int i = 0; i > inc; i--)
-      {
-        Keyboard.write(',');
-      }
-    }
-    else
-    {
-      for (int i = 0; i < inc; i++)
-      {
-        Keyboard.write('.');
-      }
-    }
-  }
-}
-
 void sendKey(int key)
 {
   Serial.println(key);

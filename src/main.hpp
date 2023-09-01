@@ -7,8 +7,6 @@ void sendKey(int key, bool release);
 void setupSettings();
 void loopMenuMode();
 void loopNormalMode();
-void loopMediaMode();
-void loopRecordMode();
 void loopGenericMode();
 void printMode(int m);
 void selectMode(int m);
