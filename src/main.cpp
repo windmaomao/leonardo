@@ -42,12 +42,23 @@ void timerIsr()
 int keycode = KEY_ESC;
 
 // Page modes
-#define MODE_COUNT 2
+#define MODE_COUNT 4
 #define MENU_MODE (0)
 #define NORMAL_MODE (1)
 #define MEDIA_MODE (2)
 #define RECORD_MODE (3)
 int mode = MEDIA_MODE;
+int lastMode;
+const char *modeLabels[] = {
+    "MENU",
+    "NORMAL",
+    "MEDIA",
+    "RECORD"};
+void (*modeLoops[])() = {
+    loopMenuMode,
+    loopNormalMode,
+    loopMediaMode,
+    loopRecordMode};
 
 // Menu button
 Button menuToggle(PIN_10);
@@ -83,7 +94,10 @@ void loop()
   menuToggle.read();
   if (menuToggle.wasPressed())
   {
-    mode = MENU_MODE;
+    lastMode = mode;
+    menuSelect = lastMode;
+    selectMode(MENU_MODE);
+    printMode(menuSelect);
   }
 
   // handle each mode
@@ -107,13 +121,15 @@ void loop()
 void loopMenuMode()
 {
   // handle key switches
+  keySwitches[0].read();
   if (keySwitches[0].wasPressed())
   {
-    selectMode(NORMAL_MODE);
+    selectMode(menuSelect);
   }
+  keySwitches[1].read();
   if (keySwitches[1].wasPressed())
   {
-    selectMode(MEDIA_MODE);
+    cancelMode();
   }
 
   // handle rotary
@@ -123,12 +139,6 @@ void loopMenuMode()
     menuSelect += inc;
     menuSelect = constrain(menuSelect, 1, MODE_COUNT - 1);
     printMode(menuSelect);
-  }
-
-  ClickEncoder::Button b = rotary.getButton();
-  if (b == ClickEncoder::Clicked)
-  {
-    selectMode(menuSelect);
   }
 }
 
@@ -295,6 +305,9 @@ void printMode(int m)
 {
   switch (m)
   {
+  case MENU_MODE:
+    displayText(": MENU");
+    break;
   case NORMAL_MODE:
     displayText(": NORMAL");
     break;
@@ -305,6 +318,13 @@ void printMode(int m)
     displayText(": RECORD");
     break;
   }
+}
+
+void cancelMode()
+{
+  mode = lastMode;
+  printMode(mode);
+  buzzTone(500);
 }
 
 void selectMode(int m)
