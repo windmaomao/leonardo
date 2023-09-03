@@ -67,7 +67,7 @@ int modeKeys[][5] = {
     {KEY_PAGE_UP, KEY_PAGE_DOWN, 0, KEY_ESC, KEY_RETURN}, // Code
     {KEY_F11, KEY_F12, 0, KEY_F8, KEY_F10},               // Media
     {KEY_F14, KEY_F15, 0, ' ', KEY_TAB},                  // Screen
-    {',', '.', 0, 'R', ' '},                              // Record
+    {',', '.', 0, 'r', ' '},                              // Record
 };
 
 // Menu button
@@ -247,6 +247,7 @@ void sendKey(int key, bool release)
 
 void buzzTone(unsigned int freq)
 {
+  Serial.println("Beep");
   tone(buzzPin, freq, 20);
 }
 
