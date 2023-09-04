@@ -29,6 +29,7 @@ Button keySwitches[keysCount] = {Button(PIN_7), Button(PIN_9)};
 uint32_t lastPressTimes[2] = {0, 0};
 
 // Oled display
+#define DISPLAY_ROTATION 0
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
@@ -95,6 +96,7 @@ void setup()
   menuToggle.begin();
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.setRotation(DISPLAY_ROTATION);
 }
 
 void loop()
@@ -256,7 +258,7 @@ void displayText(const char *text)
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
-  display.setCursor(5, 15);
+  display.setCursor(5, 5);
   display.println(text);
   display.display();
 }
@@ -305,9 +307,9 @@ void displayMenu(const char *text)
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  display.setCursor(0, 10);
+  display.setCursor(0, 0);
   display.println("MENU");
-  display.setCursor(0, 25);
+  display.setCursor(0, 15);
   display.print("> ");
   display.println(text);
   display.display();
