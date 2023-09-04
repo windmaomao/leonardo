@@ -13,8 +13,8 @@
 #include <TimerOne.h>
 
 #define PIN_4 (4)   // buzzer
-#define PIN_5 (5)   // rotary A
-#define PIN_6 (6)   // rotary B
+#define PIN_5 (20)  // rotary A
+#define PIN_6 (14)  // rotary B
 #define PIN_7 (7)   // key 1
 #define PIN_8 (8)   // rotary click
 #define PIN_9 (9)   // key 2
