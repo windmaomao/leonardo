@@ -12,20 +12,17 @@
 #include <ClickEncoder.h>
 #include <TimerOne.h>
 
-#define PIN_4 (4)   // buzzer
-#define PIN_5 (20)  // rotary A
-#define PIN_6 (14)  // rotary B
-#define PIN_7 (7)   // key 1
-#define PIN_8 (8)   // rotary click
-#define PIN_9 (9)   // key 2
-#define PIN_10 (10) // menu toggle
-
-// Buzz pin
-int buzzPin = PIN_4;
+#define PIN_BUZZER (4) // buzzer
+#define PIN_ROTARY_LEFT (20)
+#define PIN_ROTARY_RIGHT (14) // rotary B
+#define PIN_ROTARY_CLICK (8)  // rotary click
+#define PIN_KEY_1 (7)         // key 1
+#define PIN_KEY_2 (9)         // key 2
+#define PIN_MENU (10)         // menu toggle
 
 // Key switches
 const int keysCount = 2;
-Button keySwitches[keysCount] = {Button(PIN_7), Button(PIN_9)};
+Button keySwitches[keysCount] = {Button(PIN_KEY_1), Button(PIN_KEY_2)};
 uint32_t lastPressTimes[2] = {0, 0};
 
 // Oled display
@@ -33,7 +30,7 @@ uint32_t lastPressTimes[2] = {0, 0};
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
-ClickEncoder rotary(PIN_5, PIN_6, PIN_8);
+ClickEncoder rotary(PIN_ROTARY_LEFT, PIN_ROTARY_RIGHT, PIN_ROTARY_CLICK);
 void timerIsr()
 {
   rotary.service();
@@ -78,7 +75,7 @@ int modeKeys[][5] = {
 };
 
 // Menu button
-Button menuToggle(PIN_10);
+Button menuToggle(PIN_MENU);
 int menuSelect;
 
 void setup()
@@ -93,7 +90,7 @@ void setup()
     keySwitches[i].begin();
   }
 
-  pinMode(buzzPin, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT);
 
   Timer1.initialize(1000);
   Timer1.attachInterrupt(timerIsr);
@@ -256,7 +253,7 @@ void sendKey(int key, bool release)
 void buzzTone(unsigned int freq)
 {
   Serial.println("Beep");
-  tone(buzzPin, freq, 20);
+  tone(PIN_BUZZER, freq, 20);
 }
 
 void displayText(const char *text)
