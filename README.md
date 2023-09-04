@@ -4,6 +4,7 @@ This is hobby project of building an UID device so that it can have one knob and
 
 ## Design
 
+![Pcb Board Prototype](./assets/pictures/pcb_prototype.jpg)
 ![Wood Board Prototype](./assets/pictures/woodboard_prototype.jpg)
 ![Breadboard Prototype](./assets//pictures/breadboard_prototype.jpg)
 
