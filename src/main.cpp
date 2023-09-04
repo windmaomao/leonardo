@@ -50,25 +50,31 @@ int lastMode;
 const char *modeLabels[] = {
     "MENU",
     "NORMAL",
-    "CODE",
+    "READ",
     "MEDIA",
     "SCREEN",
     "RECORD"};
 void (*modeLoops[])() = {
     loopMenuMode,
     loopNormalMode,
-    loopGenericMode, // Code
+    loopGenericMode, // Read
     loopGenericMode, // Media
     loopGenericMode, // Screen
     loopGenericMode, // Record
 };
 int modeKeys[][5] = {
+    // Menu
     {},
+    // Normal
     {},
-    {KEY_PAGE_UP, KEY_PAGE_DOWN, 0, KEY_ESC, KEY_RETURN}, // Code
-    {KEY_F11, KEY_F12, 0, KEY_F8, KEY_F10},               // Media
-    {KEY_F14, KEY_F15, 0, ' ', KEY_TAB},                  // Screen
-    {',', '.', 0, 'r', ' '},                              // Record
+    // Read
+    {KEY_UP_ARROW, KEY_DOWN_ARROW, 0, KEY_ESC, KEY_RETURN},
+    // Media
+    {KEY_F11, KEY_F12, 0, KEY_F8, KEY_F10},
+    // Screen
+    {KEY_F14, KEY_F15, 0, ' ', KEY_TAB},
+    // Record
+    {',', '.', 0, 'r', ' '},
 };
 
 // Menu button
