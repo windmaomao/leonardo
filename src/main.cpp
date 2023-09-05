@@ -26,7 +26,7 @@ Button keySwitches[keysCount] = {Button(PIN_KEY_1), Button(PIN_KEY_2)};
 uint32_t lastPressTimes[2] = {0, 0};
 
 // Oled display
-#define DISPLAY_ROTATION 0
+#define DISPLAY_ROTATION 2
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
@@ -59,7 +59,7 @@ void (*modeLoops[])() = {
     loopGenericMode, // Screen
     loopGenericMode, // Record
 };
-int modeKeys[][5] = {
+KeyboardKeycode modeKeys[][5] = {
     // Menu
     {},
     // Normal
@@ -67,11 +67,13 @@ int modeKeys[][5] = {
     // Read
     {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
     // Media
-    {KEY_VOLUME_DOWN, KEY_VOLUME_UP, KEY_VOLUME_MUTE, MEDIA_PLAY_PAUSE, KEY_F10},
+    {KEY_VOLUME_DOWN, KEY_VOLUME_UP, KEY_VOLUME_MUTE, KEY_PAUSE, KEY_F10},
     // Screen
-    {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, CONSUMER_BROWSER_BACK, CONSUMER_BROWSER_FORWARD},
+    // {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, CONSUMER_BROWSER_BACK, CONSUMER_BROWSER_FORWARD},
+    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
     // Record
-    {',', '.', 0, 'r', ' '},
+    // {',', '.', 0, 'r', ' '},
+    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
 };
 
 // Menu button
@@ -230,6 +232,12 @@ void loopGenericMode()
   }
 }
 
+void sendKey(KeyboardKeycode key)
+{
+  Serial.println(key);
+  Keyboard.write(key);
+  printKey(key);
+}
 void sendKey(int key)
 {
   Serial.println(key);
