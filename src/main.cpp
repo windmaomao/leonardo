@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Keyboard.h>
+#include <HID-Project.h>
 #include <EEPROM.h>
 #include <JC_Button.h>
 #include "main.hpp"
@@ -65,11 +65,11 @@ int modeKeys[][5] = {
     // Normal
     {},
     // Read
-    {KEY_UP_ARROW, KEY_DOWN_ARROW, 0, KEY_ESC, KEY_RETURN},
+    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
     // Media
-    {KEY_F11, KEY_F12, 0, KEY_F8, KEY_F10},
+    {KEY_VOLUME_DOWN, KEY_VOLUME_UP, KEY_VOLUME_MUTE, MEDIA_PLAY_PAUSE, KEY_F10},
     // Screen
-    {KEY_F14, KEY_F15, 0, ' ', KEY_TAB},
+    {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, CONSUMER_BROWSER_BACK, CONSUMER_BROWSER_FORWARD},
     // Record
     {',', '.', 0, 'r', ' '},
 };
