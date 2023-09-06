@@ -26,7 +26,7 @@ Button keySwitches[keysCount] = {Button(PIN_KEY_1), Button(PIN_KEY_2)};
 uint32_t lastPressTimes[2] = {0, 0};
 
 // Oled display
-#define DISPLAY_ROTATION 2
+#define DISPLAY_ROTATION 0
 Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 // Rotary control
@@ -59,21 +59,19 @@ void (*modeLoops[])() = {
     loopGenericMode, // Screen
     loopGenericMode, // Record
 };
-KeyboardKeycode modeKeys[][5] = {
+Keycode modeKeys[][5] = {
     // Menu
     {},
     // Normal
     {},
     // Read
-    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
+    {{KEY_UP_ARROW}, {KEY_DOWN_ARROW}, {KEY_HOME}, {KEY_PAGE_UP}, {KEY_PAGE_DOWN}},
     // Media
-    {KEY_VOLUME_DOWN, KEY_VOLUME_UP, KEY_VOLUME_MUTE, KEY_PAUSE, KEY_F10},
+    {{KEY_VOLUME_DOWN}, {KEY_VOLUME_UP}, {}, {KEY_RESERVED, MEDIA_PLAY_PAUSE}, {KEY_VOLUME_MUTE}},
     // Screen
-    // {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, CONSUMER_BROWSER_BACK, CONSUMER_BROWSER_FORWARD},
-    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
+    {{KEY_RESERVED, CONSUMER_BRIGHTNESS_DOWN}, {KEY_RESERVED, CONSUMER_BRIGHTNESS_UP}, {}, {}, {}},
     // Record
     // {',', '.', 0, 'r', ' '},
-    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
 };
 
 // Menu button
@@ -232,11 +230,41 @@ void loopGenericMode()
   }
 }
 
-void sendKey(KeyboardKeycode key)
+void sendKey(Keycode key)
 {
-  Serial.println(key);
-  Keyboard.write(key);
-  printKey(key);
+  if (key.keyboard != KEY_RESERVED)
+  {
+    Keyboard.write(key.keyboard);
+  }
+  else
+  {
+    Keyboard.write(key.consumer);
+  }
+}
+void sendKey(Keycode key, bool release)
+{
+  if (release)
+  {
+    if (key.keyboard != KEY_RESERVED)
+    {
+      Keyboard.release(key.keyboard);
+    }
+    else
+    {
+      Keyboard.release(key.consumer);
+    }
+  }
+  else
+  {
+    if (key.keyboard != KEY_RESERVED)
+    {
+      Keyboard.press(key.keyboard);
+    }
+    else
+    {
+      Keyboard.press(key.consumer);
+    }
+  }
 }
 void sendKey(int key)
 {
