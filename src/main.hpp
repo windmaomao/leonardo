@@ -1,6 +1,5 @@
 void buzzTone(unsigned int freq);
 void displayText(const char *text);
-void printKey(uint16_t key);
 void printKey(uint16_t key, const char *info);
 void pressKey(uint16_t key);
 void releaseKey(uint16_t key);

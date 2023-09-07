@@ -42,8 +42,8 @@ int keycode = KEY_ESC;
 // Modes
 #define MODE_COUNT 6
 #define MENU_MODE (0)
-#define KEY_BOUNDARY 0x60
-int mode = MENU_MODE + 1;
+#define KEY_BOUNDARY 0xa4
+int mode = MENU_MODE + 2;
 int lastMode;
 const char *modeLabels[] = {
     "MENU",
@@ -68,11 +68,11 @@ uint16_t modeKeys[][5] = {
     // Read
     {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
     // Media
-    {MEDIA_VOLUME_DOWN, MEDIA_VOLUME_UP, 0, MEDIA_PLAY_PAUSE, MEDIA_VOLUME_MUTE},
+    {MEDIA_VOLUME_DOWN, MEDIA_VOLUME_UP, MEDIA_VOLUME_MUTE, MEDIA_PLAY_PAUSE, MEDIA_VOLUME_MUTE},
     // Screen
-    {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, CONSUMER_BROWSER_HOME, HID_CONSUMER_VOLUME_INCREMENT},
+    {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, KEY_F14, KEY_F15},
     // Record
-    // {',', '.', 0, 'r', ' '},
+    // {KEY_COMMA, KEY_PERIOD, 0, KEY_R, KEY_SPACE},
 };
 
 // Menu button
@@ -241,7 +241,7 @@ void pressKey(uint16_t key)
   {
     Keyboard.press((ConsumerKeycode)key);
   }
-  printKey(key);
+  printKey(key, "|");
 }
 
 void releaseKey(uint16_t key)
@@ -254,7 +254,7 @@ void releaseKey(uint16_t key)
   {
     Keyboard.release((ConsumerKeycode)key);
   }
-  printKey(key);
+  printKey(key, "");
 }
 
 void writeKey(uint16_t key)
@@ -279,16 +279,10 @@ void displayText(const char *text)
   display.display();
 }
 
-void printKey(uint16_t key)
-{
-  char str[10];
-  sprintf(str, "%c %d", key, key);
-  displayText(str);
-}
 void printKey(uint16_t key, const char *info)
 {
   char str[10];
-  sprintf(str, "%c %d %s", key, key, info);
+  sprintf(str, "Ox %X %s", key, info);
   displayText(str);
 }
 
