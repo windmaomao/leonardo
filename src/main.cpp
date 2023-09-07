@@ -2,7 +2,6 @@
 #include <HID-Project.h>
 #include <EEPROM.h>
 #include <JC_Button.h>
-#include "main.hpp"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -11,6 +10,9 @@
 
 #include <ClickEncoder.h>
 #include <TimerOne.h>
+
+#include "keycodes.hpp"
+#include "main.hpp"
 
 #define PIN_BUZZER (4) // buzzer
 #define PIN_ROTARY_LEFT (20)
@@ -42,7 +44,6 @@ int keycode = KEY_ESC;
 // Modes
 #define MODE_COUNT 6
 #define MENU_MODE (0)
-#define KEY_BOUNDARY 0xa4
 int mode = MENU_MODE + 2;
 int lastMode;
 const char *modeLabels[] = {
@@ -60,17 +61,17 @@ void (*modeLoops[])() = {
     loopGenericMode, // Screen
     loopGenericMode, // Record
 };
-uint16_t modeKeys[][5] = {
+uint8_t modeKeys[][5] = {
     // Menu
     {},
     // Normal
     {},
     // Read
-    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
+    {KC_UP, KC_DOWN, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
     // Media
-    {MEDIA_VOLUME_DOWN, MEDIA_VOLUME_UP, MEDIA_VOLUME_MUTE, MEDIA_PLAY_PAUSE, MEDIA_VOLUME_MUTE},
+    {KC_AUDIO_VOL_DOWN, KC_AUDIO_VOL_UP, KC_AUDIO_MUTE, KC_MEDIA_PLAY_PAUSE, KC_AUDIO_MUTE},
     // Screen
-    {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, KEY_F14, KEY_F15},
+    {KC_BRIGHTNESS_DOWN, KC_BRIGHTNESS_UP, KC_CONTROL_PANEL, KEY_F14, KEY_F15},
     // Record
     // {KEY_COMMA, KEY_PERIOD, 0, KEY_R, KEY_SPACE},
 };
@@ -231,33 +232,34 @@ void loopGenericMode()
   }
 }
 
-void pressKey(uint16_t key)
+void pressKey(uint8_t key)
 {
-  if (key < KEY_BOUNDARY)
+  if (!IS_CONSUMER_KEYCODE(key))
   {
     Keyboard.press((KeyboardKeycode)key);
+    printKey(key, "|");
   }
   else
   {
-    Keyboard.press((ConsumerKeycode)key);
+    Keyboard.press((ConsumerKeycode)KEYCODE2CONSUMER(key));
+    printKey(key, "*|");
   }
-  printKey(key, "|");
 }
 
-void releaseKey(uint16_t key)
+void releaseKey(uint8_t key)
 {
-  if (key < KEY_BOUNDARY)
+  if (!IS_CONSUMER_KEYCODE(key))
   {
     Keyboard.release((KeyboardKeycode)key);
   }
   else
   {
-    Keyboard.release((ConsumerKeycode)key);
+    Keyboard.release((ConsumerKeycode)KEYCODE2CONSUMER(key));
   }
   printKey(key, "");
 }
 
-void writeKey(uint16_t key)
+void writeKey(uint8_t key)
 {
   pressKey(key);
   releaseKey(key);
