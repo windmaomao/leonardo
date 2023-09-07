@@ -42,6 +42,7 @@ int keycode = KEY_ESC;
 // Modes
 #define MODE_COUNT 6
 #define MENU_MODE (0)
+#define KEY_BOUNDARY 0x60
 int mode = MENU_MODE + 1;
 int lastMode;
 const char *modeLabels[] = {
@@ -59,17 +60,17 @@ void (*modeLoops[])() = {
     loopGenericMode, // Screen
     loopGenericMode, // Record
 };
-Keycode modeKeys[][5] = {
+uint16_t modeKeys[][5] = {
     // Menu
     {},
     // Normal
     {},
     // Read
-    {{KEY_UP_ARROW}, {KEY_DOWN_ARROW}, {KEY_HOME}, {KEY_PAGE_UP}, {KEY_PAGE_DOWN}},
+    {KEY_UP_ARROW, KEY_DOWN_ARROW, KEY_HOME, KEY_PAGE_UP, KEY_PAGE_DOWN},
     // Media
-    {{KEY_VOLUME_DOWN}, {KEY_VOLUME_UP}, {}, {KEY_RESERVED, MEDIA_PLAY_PAUSE}, {KEY_VOLUME_MUTE}},
+    {MEDIA_VOLUME_DOWN, MEDIA_VOLUME_UP, 0, MEDIA_PLAY_PAUSE, MEDIA_VOLUME_MUTE},
     // Screen
-    {{KEY_RESERVED, CONSUMER_BRIGHTNESS_DOWN}, {KEY_RESERVED, CONSUMER_BRIGHTNESS_UP}, {}, {}, {}},
+    {CONSUMER_BRIGHTNESS_DOWN, CONSUMER_BRIGHTNESS_UP, CONSUMER_SCREENSAVER, CONSUMER_BROWSER_HOME, HID_CONSUMER_VOLUME_INCREMENT},
     // Record
     // {',', '.', 0, 'r', ' '},
 };
@@ -158,7 +159,7 @@ void loopNormalMode()
     if (keySwitches[i].wasPressed())
     {
       tmpCode = EEPROM.read(i);
-      sendKey(tmpCode, false);
+      pressKey(tmpCode);
       lastPressTimes[i] = millis();
     }
     if (keySwitches[i].wasReleased())
@@ -172,7 +173,7 @@ void loopNormalMode()
       else
       {
         tmpCode = EEPROM.read(i);
-        sendKey(tmpCode, true);
+        releaseKey(tmpCode);
       }
     }
   }
@@ -189,7 +190,7 @@ void loopNormalMode()
   ClickEncoder::Button b = rotary.getButton();
   if (b == ClickEncoder::Clicked)
   {
-    Keyboard.write(keycode);
+    writeKey(keycode);
   }
 }
 
@@ -203,14 +204,14 @@ void loopGenericMode()
     {
       for (int i = 0; i > inc; i--)
       {
-        sendKey(modeKeys[mode][0]);
+        writeKey(modeKeys[mode][0]);
       }
     }
     else
     {
       for (int i = 0; i < inc; i++)
       {
-        sendKey(modeKeys[mode][1]);
+        writeKey(modeKeys[mode][1]);
       }
     }
   }
@@ -221,69 +222,45 @@ void loopGenericMode()
     keySwitches[i].read();
     if (keySwitches[i].wasPressed())
     {
-      sendKey(modeKeys[mode][3 + i], false);
+      pressKey(modeKeys[mode][3 + i]);
     }
     if (keySwitches[i].wasReleased())
     {
-      sendKey(modeKeys[mode][3 + i], true);
+      releaseKey(modeKeys[mode][3 + i]);
     }
   }
 }
 
-void sendKey(Keycode key)
+void pressKey(uint16_t key)
 {
-  if (key.keyboard != KEY_RESERVED)
+  if (key < KEY_BOUNDARY)
   {
-    Keyboard.write(key.keyboard);
+    Keyboard.press((KeyboardKeycode)key);
   }
   else
   {
-    Keyboard.write(key.consumer);
+    Keyboard.press((ConsumerKeycode)key);
   }
-}
-void sendKey(Keycode key, bool release)
-{
-  if (release)
-  {
-    if (key.keyboard != KEY_RESERVED)
-    {
-      Keyboard.release(key.keyboard);
-    }
-    else
-    {
-      Keyboard.release(key.consumer);
-    }
-  }
-  else
-  {
-    if (key.keyboard != KEY_RESERVED)
-    {
-      Keyboard.press(key.keyboard);
-    }
-    else
-    {
-      Keyboard.press(key.consumer);
-    }
-  }
-}
-void sendKey(int key)
-{
-  Serial.println(key);
-  Keyboard.write(key);
   printKey(key);
 }
-void sendKey(int key, bool release)
+
+void releaseKey(uint16_t key)
 {
-  Serial.println(key);
-  if (release)
+  if (key < KEY_BOUNDARY)
   {
-    Keyboard.release(key);
+    Keyboard.release((KeyboardKeycode)key);
   }
   else
   {
-    Keyboard.press(key);
+    Keyboard.release((ConsumerKeycode)key);
   }
-  printKey(key, release ? "" : "|");
+  printKey(key);
+}
+
+void writeKey(uint16_t key)
+{
+  pressKey(key);
+  releaseKey(key);
 }
 
 void buzzTone(unsigned int freq)
@@ -302,13 +279,13 @@ void displayText(const char *text)
   display.display();
 }
 
-void printKey(int key)
+void printKey(uint16_t key)
 {
   char str[10];
   sprintf(str, "%c %d", key, key);
   displayText(str);
 }
-void printKey(int key, const char *info)
+void printKey(uint16_t key, const char *info)
 {
   char str[10];
   sprintf(str, "%c %d %s", key, key, info);
